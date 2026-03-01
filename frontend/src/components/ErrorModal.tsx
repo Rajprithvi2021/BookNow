@@ -57,6 +57,14 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
+  // Internal server error
+  if (apiMessage.includes('Internal server error') || apiMessage.includes('internal')) {
+    return {
+      title: '⚠️ Server Error',
+      message: 'The server encountered an unexpected error. Please try again later or contact support if the problem persists.',
+    };
+  }
+
   // Generic error
   return {
     title: '❌ Booking Failed',

@@ -88,17 +88,27 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 status_code=e.status_code,
                 content={
                     "error": e.__class__.__name__,
-                    "message": str(e),
+                    "detail": str(e),
+                    "request_id": request.headers.get("X-Request-ID")
+                }
+            )
+        except ValueError as e:
+            logger.warning(f"Validation error: {e}")
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "ValidationError",
+                    "detail": str(e),
                     "request_id": request.headers.get("X-Request-ID")
                 }
             )
         except Exception as e:
-            logger.error(f"Unhandled exception: {e}", exc_info=True)
+            logger.error(f"Unhandled exception: {type(e).__name__}: {e}", exc_info=True)
             return JSONResponse(
                 status_code=500,
                 content={
                     "error": "InternalServerError",
-                    "message": "An unexpected error occurred",
+                    "detail": f"{type(e).__name__}: {str(e)[:100]}",
                     "request_id": request.headers.get("X-Request-ID")
                 }
             )

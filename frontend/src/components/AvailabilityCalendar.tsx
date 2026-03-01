@@ -31,7 +31,10 @@ export default function AvailabilityCalendar({
   >({});
 
   useEffect(() => {
-    const grouped = slots.reduce(
+    // Filter to only available slots
+    const availableSlots = slots.filter(slot => slot.is_available);
+    
+    const grouped = availableSlots.reduce(
       (acc, slot) => {
         if (!acc[slot.slot_date]) {
           acc[slot.slot_date] = [];
@@ -54,34 +57,35 @@ export default function AvailabilityCalendar({
     );
   }
 
-  if (slots.length === 0) {
+  // Get only available slots for display
+  const availableSlots = slots.filter(s => s.is_available);
+  const bookedSlots = slots.filter(s => !s.is_available);
+
+  if (availableSlots.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">No available slots found.</p>
+        <p className="text-gray-500 mb-2">No available slots found.</p>
+        {bookedSlots.length > 0 && (
+          <p className="text-sm text-gray-400">All slots for this period are booked. Please try another month.</p>
+        )}
       </div>
     );
   }
 
-  // Calculate stats
-  const totalSlots = slots.length;
-  const bookedSlots = slots.filter(s => !s.is_available).length;
-  const availableSlots = slots.filter(s => s.is_available).length;
+  // Calculate stats - only count actual returned slots
+  const totalSlots = availableSlots.length;
+  const allSlots = slots.length;
+  const unAvailableSlots = allSlots - totalSlots;
 
   return (
     <div className="space-y-6">
-      {/* Legend */}
-      <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200">
+      {/* Legend - Only show available count */}
+      <div className="grid grid-cols-1 gap-4 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <div className="px-4 py-2 bg-white border border-green-300 rounded text-xs font-medium text-green-900">
             ✓ Available
           </div>
-          <span className="text-sm text-gray-600">{availableSlots} slots</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="px-4 py-2 bg-gray-200 text-gray-400 rounded text-xs font-medium opacity-60 line-through">
-            ✗ Booked
-          </div>
-          <span className="text-sm text-gray-600">{bookedSlots} slots</span>
+          <span className="text-sm text-gray-600">{totalSlots} slots ready to book</span>
         </div>
       </div>
 
@@ -101,31 +105,15 @@ export default function AvailabilityCalendar({
               {daySlots.map((slot) => (
                 <button
                   key={slot.id}
-                  onClick={() => {
-                    if (slot.is_available) {
-                      onSelectSlot(slot.id, slot.slot_date, slot.slot_time);
-                    }
-                  }}
-                  disabled={!slot.is_available}
+                  onClick={() => onSelectSlot(slot.id, slot.slot_date, slot.slot_time)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
-                    !slot.is_available
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 line-through'
-                      : selectedSlotId === slot.id
-                      ? 'bg-green-600 text-white ring-2 ring-green-400'
-                      : 'bg-white border border-green-300 text-gray-900 hover:bg-green-50 hover:border-green-500'
+                    selectedSlotId === slot.id
+                      ? 'bg-green-600 text-white ring-2 ring-green-400 shadow-lg'
+                      : 'bg-white border border-green-300 text-gray-900 hover:bg-green-50 hover:border-green-500 hover:shadow'
                   }`}
                 >
-                  {slot.is_available ? (
-                    <>
-                      <span className="text-xs block mb-1">✓ Available</span>
-                      {slot.slot_time}
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xs block mb-1">✗ Booked</span>
-                      {slot.slot_time}
-                    </>
-                  )}
+                  <span className="text-xs block mb-1">✓ Available</span>
+                  {slot.slot_time}
                 </button>
               ))}
             </div>

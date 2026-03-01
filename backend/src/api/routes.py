@@ -156,8 +156,9 @@ async def book_appointment(
         logger.warning(f"Not found: {e}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error in book_appointment: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Unexpected error in book_appointment: {e}", exc_info=True)
+        error_message = str(e) if str(e) else "Unable to complete your booking. Please try again."
+        raise HTTPException(status_code=500, detail=error_message)
 
 
 @router.get(
