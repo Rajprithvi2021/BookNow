@@ -60,14 +60,27 @@ export default function BookingForm({
       alert('Please select a time slot');
       return;
     }
+    console.log('Submitting booking with data:', formData);
     await onSubmit(formData);
+    console.log('Booking submission completed');
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Your Appointment</h2>
 
-      {/* Selected Slot Display */}
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+          <p className="text-green-900 font-semibold whitespace-pre-line text-base">{successMessage}</p>
+          <p className="text-green-700 text-sm mt-2">Your booking has been confirmed. You can check your email for details.</p>
+        </div>
+      )}
+
+      {/* Show form only if no success message */}
+      {!successMessage && (
+        <>
+          {/* Selected Slot Display */}
       {selectedDate && selectedTime && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-gray-600">Selected Time:</p>
@@ -165,6 +178,5 @@ export default function BookingForm({
           👆 Select a time slot above to enable booking
         </p>
       )}
-    </div>
-  );
-}
+        </>
+      )}

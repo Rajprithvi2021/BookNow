@@ -48,7 +48,10 @@ export default function Home() {
       data.notes || undefined
     );
 
+    console.log('Booking response:', appointment);
+
     if (appointment) {
+      console.log('Appointment booked successfully:', appointment.id);
       setSuccessMessage(
         `✅ Appointment Confirmed!\n${selectedSlot.date} at ${selectedSlot.time}\nConfirmation sent to ${data.email}`
       );
@@ -59,6 +62,9 @@ export default function Home() {
       setTimeout(() => {
         setSuccessMessage('');
       }, 5000);
+    } else {
+      console.log('Booking failed - appointment is null/undefined');
+      console.log('Error:', bookingError);
     }
   };
 
