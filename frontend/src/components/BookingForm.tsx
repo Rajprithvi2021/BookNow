@@ -33,16 +33,16 @@ export default function BookingForm({
     notes: '',
   });
 
-  // Reset form when booking is successful
+  // Reset form when booking is successful or slot is deselected
   useEffect(() => {
-    if (successMessage) {
+    if (successMessage || !selectedSlotId) {
       setFormData({
         name: '',
         email: '',
         notes: '',
       });
     }
-  }, [successMessage]);
+  }, [successMessage, selectedSlotId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -163,10 +163,10 @@ export default function BookingForm({
             <button
               type="submit"
               disabled={loading || !selectedSlotId}
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition ${
+              className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
                 loading || !selectedSlotId
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                  : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg"
               }`}
             >
               {loading ? "Booking..." : "Confirm Booking"}
@@ -174,9 +174,11 @@ export default function BookingForm({
           </form>
 
           {!selectedSlotId && (
-            <p className="mt-4 text-center text-sm text-gray-500">
-               Select a time slot above to enable booking
-            </p>
+            <div className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded mb-4">
+              <p className="text-amber-900 text-sm font-medium">
+                👈 Select a time slot from the calendar to enable booking
+              </p>
+            </div>
           )}
         </>
       )}

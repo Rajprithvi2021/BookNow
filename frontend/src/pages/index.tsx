@@ -58,14 +58,15 @@ export default function Home() {
       setSelectedSlot(null);
       // Refresh slots
       fetchSlots(currentMonth, 30);
-      // Reset form
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
     } else {
       console.log('Booking failed - appointment is null/undefined');
       console.log('Error:', bookingError);
     }
+  };
+
+  const handleBookAnother = () => {
+    setSuccessMessage('');
+    setSelectedSlot(null);
   };
 
   const goToPreviousMonth = () => {
@@ -126,6 +127,12 @@ export default function Home() {
           <div className="mb-8 p-6 bg-green-50 border-2 border-green-300 rounded-lg shadow-md">
             <p className="text-green-900 font-semibold whitespace-pre-line text-lg">{successMessage}</p>
             <p className="text-green-700 text-sm mt-2">Your booking is now pending confirmation. Please check your email.</p>
+            <button
+              onClick={handleBookAnother}
+              className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
+            >
+              Book Another Appointment
+            </button>
           </div>
         )}
 
