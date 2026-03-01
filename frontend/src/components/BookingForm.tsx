@@ -163,7 +163,7 @@ export default function BookingForm({
             <button
               type="submit"
               disabled={loading || !selectedSlotId}
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition $ {
+              className={`w-full py-3 px-4 rounded-lg font-semibold transition ${
                 loading || !selectedSlotId
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700"
