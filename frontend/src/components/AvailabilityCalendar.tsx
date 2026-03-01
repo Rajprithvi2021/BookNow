@@ -79,14 +79,31 @@ export default function AvailabilityCalendar({
               {daySlots.map((slot) => (
                 <button
                   key={slot.id}
-                  onClick={() => onSelectSlot(slot.id, slot.slot_date, slot.slot_time)}
+                  onClick={() => {
+                    if (slot.is_available) {
+                      onSelectSlot(slot.id, slot.slot_date, slot.slot_time);
+                    }
+                  }}
+                  disabled={!slot.is_available}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
-                    selectedSlotId === slot.id
-                      ? 'bg-blue-600 text-white ring-2 ring-blue-400'
-                      : 'bg-white border border-gray-300 text-gray-900 hover:border-blue-500'
+                    !slot.is_available
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 line-through'
+                      : selectedSlotId === slot.id
+                      ? 'bg-green-600 text-white ring-2 ring-green-400'
+                      : 'bg-white border border-green-300 text-gray-900 hover:bg-green-50 hover:border-green-500'
                   }`}
                 >
-                  {slot.slot_time}
+                  {slot.is_available ? (
+                    <>
+                      <span className="text-xs block mb-1">✓ Available</span>
+                      {slot.slot_time}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs block mb-1">✗ Booked</span>
+                      {slot.slot_time}
+                    </>
+                  )}
                 </button>
               ))}
             </div>
