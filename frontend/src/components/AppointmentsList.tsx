@@ -1,7 +1,3 @@
-/**
- * Appointments list component
- */
-
 import React from 'react';
 
 interface Appointment {

@@ -1,7 +1,3 @@
-/**
- * Custom hooks for appointment management
- */
-
 import { useCallback, useState, useEffect } from 'react';
 import {
   getAvailableSlots,
@@ -33,9 +29,7 @@ interface Appointment {
   cancelled_at?: string;
 }
 
-/**
- * Hook to fetch available slots
- */
+
 export function useAvailableSlots() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,9 +58,7 @@ export function useAvailableSlots() {
   return { slots, loading, error, fetchSlots };
 }
 
-/**
- * Hook to book an appointment
- */
+
 export function useBookAppointment() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +82,7 @@ export function useBookAppointment() {
         );
 
         if (response.error) {
-          // Handle different error response formats from backend
+
           let errorMessage = 'An error occurred while booking.';
           
           if (typeof response.error === 'string') {
@@ -122,9 +114,7 @@ export function useBookAppointment() {
   return { loading, error, book };
 }
 
-/**
- * Hook to fetch appointments by email
- */
+
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -156,9 +146,7 @@ export function useAppointments() {
   return { appointments, loading, error, fetch };
 }
 
-/**
- * Hook to cancel an appointment (idempotent)
- */
+
 export function useCancelAppointment() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,9 +175,7 @@ export function useCancelAppointment() {
   return { loading, error, cancel };
 }
 
-/**
- * Hook to check API health
- */
+
 export function useApiHealth() {
   const [isHealthy, setIsHealthy] = useState(false);
   const [loading, setLoading] = useState(true);

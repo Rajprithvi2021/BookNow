@@ -17,7 +17,7 @@ interface ErrorModalProps {
  * Parse API error message and return user-friendly message
  */
 function parseErrorMessage(apiMessage: string): { title: string; message: string } {
-  // Already booked
+
   if (apiMessage.includes('already booked')) {
     return {
       title: '❌ Slot Already Booked',
@@ -25,7 +25,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Slot not found
+
   if (apiMessage.includes('not found') || apiMessage.includes('not exist')) {
     return {
       title: '❌ Slot Not Found',
@@ -33,7 +33,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Email already has appointment
+
   if (apiMessage.includes('already has') || apiMessage.includes('existing appointment')) {
     return {
       title: '⚠️ Email Already Booked',
@@ -41,7 +41,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Invalid slot
+
   if (apiMessage.includes('invalid') || apiMessage.includes('Invalid')) {
     return {
       title: '❌ Invalid Slot',
@@ -49,7 +49,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Network error
+
   if (apiMessage.includes('Network') || apiMessage.includes('network')) {
     return {
       title: '🌐 Connection Error',
@@ -57,7 +57,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Internal server error
+
   if (apiMessage.includes('Internal server error') || apiMessage.includes('internal')) {
     return {
       title: '⚠️ Server Error',
@@ -65,7 +65,7 @@ function parseErrorMessage(apiMessage: string): { title: string; message: string
     };
   }
 
-  // Generic error
+
   return {
     title: '❌ Booking Failed',
     message: apiMessage || 'An unexpected error occurred. Please try again.',

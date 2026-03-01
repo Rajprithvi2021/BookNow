@@ -1,7 +1,3 @@
-/**
- * Available slots calendar component
- */
-
 import React, { useEffect, useState } from 'react';
 
 interface Slot {
@@ -31,7 +27,6 @@ export default function AvailabilityCalendar({
   >({});
 
   useEffect(() => {
-    // Filter to only available slots
     const availableSlots = slots.filter(slot => slot.is_available);
     
     const grouped = availableSlots.reduce(
@@ -57,7 +52,6 @@ export default function AvailabilityCalendar({
     );
   }
 
-  // Get only available slots for display
   const availableSlots = slots.filter(s => s.is_available);
   const bookedSlots = slots.filter(s => !s.is_available);
 
@@ -72,7 +66,6 @@ export default function AvailabilityCalendar({
     );
   }
 
-  // Calculate stats - only count actual returned slots
   const totalSlots = availableSlots.length;
   const allSlots = slots.length;
   const unAvailableSlots = allSlots - totalSlots;

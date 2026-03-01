@@ -1,7 +1,3 @@
-/**
- * _app.tsx: Next.js app wrapper
- */
-
 import type { AppProps } from 'next/app';
 import '@/styles/globals.css';
 

@@ -1,7 +1,3 @@
-/**
- * Appointments page: View and manage user's appointments
- */
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAppointments, useCancelAppointment } from '@/hooks/api-hooks';

@@ -1,7 +1,3 @@
-/**
- * Home page: Book an appointment
- */
-
 import React, { useEffect, useState, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { useAvailableSlots, useBookAppointment, useApiHealth } from '@/hooks/api-hooks';
@@ -33,29 +29,23 @@ export default function Home() {
   const { loading: bookingLoading, error: bookingError, book } = useBookAppointment();
   const { isHealthy, loading: healthLoading } = useApiHealth();
 
-  // Helper function to get days in month
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     return new Date(year, month + 1, 0).getDate();
   };
 
-  // Helper function to get remaining days in month from today
   const getRemainingDaysInMonth = (date: Date) => {
     const today = new Date();
     const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     if (date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) {
-      // Current month: return days from today to end of month
       return lastDayOfMonth - today.getDate() + 1;
     }
-    // Other months: return total days in month
     return lastDayOfMonth;
   };
 
-  // Fetch slots for current month only
   useEffect(() => {
     const daysToFetch = Math.min(getRemainingDaysInMonth(currentMonth), 30);
-    console.log(`Fetching ${daysToFetch} days for ${currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
     fetchSlots(currentMonth, daysToFetch);
   }, [currentMonth]);
 
@@ -63,7 +53,6 @@ export default function Home() {
     setSelectedSlot({ id: slotId, date, time });
     setSuccessMessage('');
     
-    // Scroll to booking form with a small delay to ensure the DOM is updated
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -98,37 +87,30 @@ export default function Home() {
       });
       setShowConfirmationModal(true);
       setSelectedSlot(null);
-      // Refresh slots for current month (capped at 30 days)
       const daysToFetch = Math.min(getRemainingDaysInMonth(currentMonth), 30);
       fetchSlots(currentMonth, daysToFetch);
     } else if (bookingError) {
-      // Show error modal with friendly message
-      console.log('Showing error modal with message:', bookingError);
       setErrorMessage(bookingError);
       setShowErrorModal(true);
     } else {
-      // Fallback error
-      console.log('Unknown booking error');
       setErrorMessage('Unable to complete your booking. Please try again.');
       setShowErrorModal(true);
     }
   };
 
   const handleCloseModal = () => {
-    console.log('Closing confirmation modal');
     setShowConfirmationModal(false);
     setTimeout(() => {
       setConfirmationDetails(null);
       setSuccessMessage('');
-    }, 300); // Allow animation to complete
+    }, 300);
   };
 
   const handleCloseErrorModal = () => {
-    console.log('Closing error modal');
     setShowErrorModal(false);
     setTimeout(() => {
       setErrorMessage('');
-    }, 300); // Allow animation to complete
+    }, 300);
   };
 
   const handleBookAnother = () => {
