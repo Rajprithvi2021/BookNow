@@ -3,10 +3,22 @@
 from datetime import datetime, timedelta
 from uuid import UUID
 from typing import Optional
+import json
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.sqlite import JSON as SQLITE_JSON
 
 from src.db.models import IdempotencyRecord
 from src.utils.logger import logger
+
+
+class JsonEncoder(json.JSONEncoder):
+    """Custom JSON encoder for datetime and other non-serializable objects."""
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        if isinstance(obj, UUID):
+            return str(obj)
+        return super().default(obj)
 
 
 class IdempotencyService:
@@ -67,17 +79,22 @@ class IdempotencyService:
             ttl_hours: How long to keep record (default 24h)
         """
         
+        # Ensure body is JSON serializable by encoding/decoding
+        json_body = json.loads(json.dumps(body, cls=JsonEncoder))
+        
         record = IdempotencyRecord(
             idempotency_key=idempotency_key,
             method=method,
             resource_path=path,
             response_status=status,
-            response_body=body,
+            response_body=json_body,
             ttl_expires_at=datetime.utcnow() + timedelta(hours=ttl_hours)
         )
         session.add(record)
         session.commit()
         
+        logger.info(f"Idempotency cache STORE for key {idempotency_key}: {status} {method} {path}")
+
         logger.info(
             f"Idempotency record stored: {method} {path} → {status}"
         )

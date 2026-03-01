@@ -131,9 +131,9 @@ async def book_appointment(
             "notes": appointment.notes,
             "status": appointment.status.value,
             "idempotency_key": str(appointment.idempotency_key),
-            "created_at": appointment.created_at,
-            "confirmed_at": appointment.confirmed_at,
-            "cancelled_at": appointment.cancelled_at,
+            "created_at": appointment.created_at.isoformat() if appointment.created_at else None,
+            "confirmed_at": appointment.confirmed_at.isoformat() if appointment.confirmed_at else None,
+            "cancelled_at": appointment.cancelled_at.isoformat() if appointment.cancelled_at else None,
         }
         
         IdempotencyService.store_response(
