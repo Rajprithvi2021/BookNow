@@ -48,6 +48,22 @@ htmlcov/
 
 # Node
 node_modules/
+
+# Documentation (local reference only)
+TECHNICAL_DECISIONS.md
+SUBMISSION_EVALUATION.md
+PROJECT_STATUS.md
+IMPLEMENTATION_ROADMAP.md
+DOCKER_SETUP.md
+DIRECTORY_STRUCTURE.md
+DATA_FLOWS_ARCHITECTURE.md
+CODE_CLEANUP.md
+ASSIGNMENT_BRIEF.md
+ARCHITECTURE_DESIGN.md
+ARCHITECTURE.md
+docker/DOCKER.md
+docker/README.md
+docker/QUICKSTART.md
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
