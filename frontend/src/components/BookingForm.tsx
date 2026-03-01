@@ -69,41 +69,30 @@ export default function BookingForm({
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Your Appointment</h2>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="mb-6 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-          <p className="text-green-900 font-semibold whitespace-pre-line text-base">{successMessage}</p>
-          <p className="text-green-700 text-sm mt-2">Your booking has been confirmed. You can check your email for details.</p>
+      {/* Selected Slot Display */}
+      {selectedDate && selectedTime && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-gray-600">Selected Time:</p>
+          <p className="text-lg font-semibold text-blue-900">
+            {new Date(selectedDate).toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}{" "}
+            at {selectedTime}
+          </p>
         </div>
       )}
 
-      {/* Show form only if no success message */}
-      {!successMessage && (
-        <>
-          {/* Selected Slot Display */}
-          {selectedDate && selectedTime && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-gray-600">Selected Time:</p>
-              <p className="text-lg font-semibold text-blue-900">
-                {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}{" "}
-                at {selectedTime}
-              </p>
-            </div>
-          )}
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-900 text-sm">{error}</p>
+        </div>
+      )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-900 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
                 htmlFor="name"

@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import { useAvailableSlots, useBookAppointment, useApiHealth } from '@/hooks/api-hooks';
 import AvailabilityCalendar from '@/components/AvailabilityCalendar';
 import BookingForm from '@/components/BookingForm';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function Home() {
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -17,6 +18,12 @@ export default function Home() {
 
   const [successMessage, setSuccessMessage] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [confirmationDetails, setConfirmationDetails] = useState<{
+    date: string;
+    time: string;
+    email: string;
+  } | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
   const { slots, loading: slotsLoading, error: slotsError, fetchSlots } = useAvailableSlots();
@@ -52,9 +59,13 @@ export default function Home() {
 
     if (appointment) {
       console.log('Appointment booked successfully:', appointment.id);
-      setSuccessMessage(
-        `✅ Appointment Confirmed!\n${selectedSlot.date} at ${selectedSlot.time}\nConfirmation sent to ${data.email}`
-      );
+      // Show confirmation modal with booking details
+      setConfirmationDetails({
+        date: selectedSlot.date,
+        time: selectedSlot.time,
+        email: data.email,
+      });
+      setShowConfirmationModal(true);
       setSelectedSlot(null);
       // Refresh slots
       fetchSlots(currentMonth, 30);
@@ -62,6 +73,12 @@ export default function Home() {
       console.log('Booking failed - appointment is null/undefined');
       console.log('Error:', bookingError);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmationModal(false);
+    setConfirmationDetails(null);
+    setSuccessMessage('');
   };
 
   const handleBookAnother = () => {
@@ -222,6 +239,17 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmationDetails && (
+        <ConfirmationModal
+          isOpen={showConfirmationModal}
+          appointmentDate={confirmationDetails.date}
+          appointmentTime={confirmationDetails.time}
+          userEmail={confirmationDetails.email}
+          onClose={handleCloseModal}
+        />
+      )}
     </Layout>
   );
 }
