@@ -62,8 +62,30 @@ export default function AvailabilityCalendar({
     );
   }
 
+  // Calculate stats
+  const totalSlots = slots.length;
+  const bookedSlots = slots.filter(s => !s.is_available).length;
+  const availableSlots = slots.filter(s => s.is_available).length;
+
   return (
     <div className="space-y-6">
+      {/* Legend */}
+      <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-2">
+          <div className="px-4 py-2 bg-white border border-green-300 rounded text-xs font-medium text-green-900">
+            ✓ Available
+          </div>
+          <span className="text-sm text-gray-600">{availableSlots} slots</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="px-4 py-2 bg-gray-200 text-gray-400 rounded text-xs font-medium opacity-60 line-through">
+            ✗ Booked
+          </div>
+          <span className="text-sm text-gray-600">{bookedSlots} slots</span>
+        </div>
+      </div>
+
+      {/* Calendar */}
       {Object.entries(groupedByDate)
         .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
         .map(([date, daySlots]) => (
