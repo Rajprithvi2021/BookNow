@@ -34,13 +34,14 @@ class AppointmentService:
         Book an appointment with double-booking prevention.
         
         Algorithm:
-        1. BEGIN TRANSACTION
-        2. SELECT slot FOR UPDATE (acquire exclusive lock)
-        3. Check is_available
-        4. INSERT appointment (status=CONFIRMED)
-        5. INSERT notification (status=QUEUED)
-        6. UPDATE slot is_available=false
-        7. COMMIT (lock released)
+        1. Check idempotency cache - if exists, return it
+        2. BEGIN TRANSACTION
+        3. SELECT slot FOR UPDATE (acquire exclusive lock)
+        4. Check is_available
+        5. INSERT appointment (status=CONFIRMED)
+        6. INSERT notification (status=QUEUED)
+        7. UPDATE slot is_available=false
+        8. COMMIT (lock released)
         
         The lock ensures only ONE request can proceed for a given slot.
         Other requests wait, then see is_available=false and get 409 Conflict.
@@ -60,6 +61,16 @@ class AppointmentService:
             DoubleBookingError: Slot was just booked by another request
             ValueError: Invalid input
         """
+        
+        # CRITICAL: Check idempotency cache first
+        # If this key was already processed, return the cached result
+        existing = session.query(Appointment) \
+            .filter_by(idempotency_key=idempotency_key) \
+            .one_or_none()
+        
+        if existing:
+            logger.info(f"Idempotency cache HIT for key {idempotency_key}, returning existing appointment {existing.id}")
+            return existing
         
         try:
             # CRITICAL: Acquire exclusive row lock on this slot
