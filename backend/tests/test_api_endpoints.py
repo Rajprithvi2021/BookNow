@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from uuid import uuid4
 from datetime import date, time
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 from src.main import create_app
 from src.core.config import Settings
@@ -21,24 +21,43 @@ from src.db.models import Base
 from src.db.connection import get_db_session
 
 
-@pytest.fixture
-def test_db():
-    """Create in-memory SQLite database for tests."""
-    engine = create_engine(
+# Global test database engine and session factory
+test_engine = None
+TestingSessionLocal = None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_test_db():
+    """Initialize test database engine once per session."""
+    global test_engine, TestingSessionLocal
+    
+    test_engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False}
     )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(bind=test_engine)
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+
+@pytest.fixture
+def test_db() -> Session:
+    """Provide a fresh database session for each test."""
+    connection = test_engine.connect()
+    transaction = connection.begin()
     
-    db = TestingSessionLocal()
-    yield db
-    db.close()
+    session = TestingSessionLocal(bind=connection)
+    
+    yield session
+    
+    session.close()
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture
 def app(test_db):
     """Create test app instance with test database."""
+    # Create app with test settings
     settings = Settings(database_url="sqlite:///:memory:")
     app = create_app(settings)
     
@@ -63,7 +82,7 @@ def client(app):
 @pytest.fixture
 def setup_slots(test_db):
     """Seed some availability slots for testing."""
-    from datetime import timedelta, time
+    from datetime import timedelta
     from src.db.models import AvailabilitySlot
     
     start_date = date(2024, 12, 15)
@@ -178,7 +197,7 @@ class TestCancelEndpoint:
         )
         
         assert response.status_code == 404
-        assert "not found" in response.json()["message"].lower()
+        assert "not found" in response.json()["detail"].lower()
 
 
 class TestAppointmentListEndpoint:

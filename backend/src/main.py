@@ -65,7 +65,7 @@ def create_app(settings: Settings = None) -> FastAPI:
     async def startup_event():
         """Initialize database on startup."""
         from src.db.connection import init_db
-        init_db()
+        await init_db()
         logger.info("Database initialized")
     
     return app
