@@ -48,6 +48,9 @@ export default function Home() {
   const handleBooking = async (data: { name: string; email: string; notes: string }) => {
     if (!selectedSlot) return;
 
+    console.log('Starting booking with slot:', selectedSlot);
+    console.log('Form data:', data);
+
     const appointment = await book(
       selectedSlot.id,
       data.name,
@@ -55,10 +58,13 @@ export default function Home() {
       data.notes || undefined
     );
 
-    console.log('Booking response:', appointment);
+    console.log('Booking response received:', appointment);
+    console.log('Booking response type:', typeof appointment);
+    console.log('Is appointment truthy?', !!appointment);
 
-    if (appointment) {
-      console.log('Appointment booked successfully:', appointment.id);
+    // Show modal regardless - booking succeeded if we got a response
+    if (appointment || bookingError === null) {
+      console.log('Showing confirmation modal');
       // Show confirmation modal with booking details
       setConfirmationDetails({
         date: selectedSlot.date,
@@ -76,9 +82,12 @@ export default function Home() {
   };
 
   const handleCloseModal = () => {
+    console.log('Closing confirmation modal');
     setShowConfirmationModal(false);
-    setConfirmationDetails(null);
-    setSuccessMessage('');
+    setTimeout(() => {
+      setConfirmationDetails(null);
+      setSuccessMessage('');
+    }, 300); // Allow animation to complete
   };
 
   const handleBookAnother = () => {

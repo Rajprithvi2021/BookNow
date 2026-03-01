@@ -20,7 +20,14 @@ export default function ConfirmationModal({
   userEmail,
   onClose,
 }: ConfirmationModalProps) {
-  if (!isOpen) return null;
+  console.log('ConfirmationModal rendered with:', { isOpen, appointmentDate, appointmentTime, userEmail });
+  
+  if (!isOpen) {
+    console.log('Modal not open, returning null');
+    return null;
+  }
+
+  console.log('Rendering confirmation modal');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
