@@ -40,11 +40,23 @@ export default function Home() {
     return new Date(year, month + 1, 0).getDate();
   };
 
+  // Helper function to get remaining days in month from today
+  const getRemainingDaysInMonth = (date: Date) => {
+    const today = new Date();
+    const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    if (date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) {
+      // Current month: return days from today to end of month
+      return lastDayOfMonth - today.getDate() + 1;
+    }
+    // Other months: return total days in month
+    return lastDayOfMonth;
+  };
+
   // Fetch slots for current month only
   useEffect(() => {
-    const daysInMonth = getDaysInMonth(currentMonth);
-    console.log(`Fetching ${daysInMonth} days for ${currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
-    fetchSlots(currentMonth, daysInMonth);
+    const daysToFetch = Math.min(getRemainingDaysInMonth(currentMonth), 30);
+    console.log(`Fetching ${daysToFetch} days for ${currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
+    fetchSlots(currentMonth, daysToFetch);
   }, [currentMonth]);
 
   const handleSelectSlot = (slotId: string, date: string, time: string) => {
@@ -86,9 +98,9 @@ export default function Home() {
       });
       setShowConfirmationModal(true);
       setSelectedSlot(null);
-      // Refresh slots for current month
-      const daysInMonth = getDaysInMonth(currentMonth);
-      fetchSlots(currentMonth, daysInMonth);
+      // Refresh slots for current month (capped at 30 days)
+      const daysToFetch = Math.min(getRemainingDaysInMonth(currentMonth), 30);
+      fetchSlots(currentMonth, daysToFetch);
     } else if (bookingError) {
       // Show error modal with friendly message
       console.log('Showing error modal with message:', bookingError);

@@ -34,46 +34,52 @@ def get_db_session() -> Session:
 async def init_db():
     """Initialize database (create tables and seed sample data)."""
     try:
-        from src.db.models import Base, AvailabilitySlot
+        from src.db.models import Base, AvailabilitySlot, Appointment, IdempotencyRecord, Notification
         from datetime import date, time, timedelta
         from uuid import uuid4
         
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully")
         
-        # Seed sample availability slots if database is empty
+        # Reseed availability slots every startup to ensure current slots
         session = SessionLocal()
-        existing_slots = session.query(AvailabilitySlot).count()
         
-        if existing_slots == 0:
-            logger.info("Seeding sample availability slots...")
-            today = date.today()
+        # Clear old slots and related data
+        session.query(Notification).delete()
+        session.query(Appointment).delete()
+        session.query(IdempotencyRecord).delete()
+        session.query(AvailabilitySlot).delete()
+        session.commit()
+        logger.info("Cleared old availability slots")
+        
+        logger.info("Seeding fresh availability slots...")
+        today = date.today()
+        
+        # Create sample slots for 3 months (90 days)
+        # 4 slots per day = 360 total slots
+        for day_offset in range(90):
+            slot_date = today + timedelta(days=day_offset)
             
-            # Create sample slots for 3 months (90 days)
-            # 4 slots per day = 360 total slots
-            for day_offset in range(90):
-                slot_date = today + timedelta(days=day_offset)
-                
-                # 4 slots per day at different times
-                times = [
-                    time(9, 0),   # 9:00 AM
-                    time(11, 0),  # 11:00 AM
-                    time(14, 0),  # 2:00 PM
-                    time(16, 0),  # 4:00 PM
-                ]
-                
-                for slot_time in times:
-                    slot = AvailabilitySlot(
-                        id=uuid4(),
-                        slot_date=slot_date,
-                        slot_time=slot_time,
-                        duration_minutes=60,
-                        is_available=True
-                    )
-                    session.add(slot)
+            # 4 slots per day at different times
+            times = [
+                time(9, 0),   # 9:00 AM
+                time(11, 0),  # 11:00 AM
+                time(14, 0),  # 2:00 PM
+                time(16, 0),  # 4:00 PM
+            ]
             
-            session.commit()
-            logger.info("Successfully seeded 360 availability slots (90 days × 4 slots/day)")
+            for slot_time in times:
+                slot = AvailabilitySlot(
+                    id=uuid4(),
+                    slot_date=slot_date,
+                    slot_time=slot_time,
+                    duration_minutes=60,
+                    is_available=True
+                )
+                session.add(slot)
+        
+        session.commit()
+        logger.info(f"Successfully seeded 360 availability slots (90 days × 4 slots/day) starting from {today}")
         
         session.close()
         
