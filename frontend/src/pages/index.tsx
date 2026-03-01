@@ -8,6 +8,7 @@ import { useAvailableSlots, useBookAppointment, useApiHealth } from '@/hooks/api
 import AvailabilityCalendar from '@/components/AvailabilityCalendar';
 import BookingForm from '@/components/BookingForm';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import ErrorModal from '@/components/ErrorModal';
 
 export default function Home() {
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -19,6 +20,8 @@ export default function Home() {
   const [successMessage, setSuccessMessage] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [confirmationDetails, setConfirmationDetails] = useState<{
     date: string;
     time: string;
@@ -61,10 +64,11 @@ export default function Home() {
     console.log('Booking response received:', appointment);
     console.log('Booking response type:', typeof appointment);
     console.log('Is appointment truthy?', !!appointment);
+    console.log('Error after booking:', bookingError);
 
-    // Show modal regardless - booking succeeded if we got a response
-    if (appointment || bookingError === null) {
-      console.log('Showing confirmation modal');
+    // Show success modal if appointment was created
+    if (appointment) {
+      console.log('Showing confirmation modal - Success!');
       // Show confirmation modal with booking details
       setConfirmationDetails({
         date: selectedSlot.date,
@@ -75,9 +79,16 @@ export default function Home() {
       setSelectedSlot(null);
       // Refresh slots
       fetchSlots(currentMonth, 30);
+    } else if (bookingError) {
+      // Show error modal with friendly message
+      console.log('Showing error modal with message:', bookingError);
+      setErrorMessage(bookingError);
+      setShowErrorModal(true);
     } else {
-      console.log('Booking failed - appointment is null/undefined');
-      console.log('Error:', bookingError);
+      // Fallback error
+      console.log('Unknown booking error');
+      setErrorMessage('Unable to complete your booking. Please try again.');
+      setShowErrorModal(true);
     }
   };
 
@@ -87,6 +98,14 @@ export default function Home() {
     setTimeout(() => {
       setConfirmationDetails(null);
       setSuccessMessage('');
+    }, 300); // Allow animation to complete
+  };
+
+  const handleCloseErrorModal = () => {
+    console.log('Closing error modal');
+    setShowErrorModal(false);
+    setTimeout(() => {
+      setErrorMessage('');
     }, 300); // Allow animation to complete
   };
 
@@ -259,6 +278,13 @@ export default function Home() {
           onClose={handleCloseModal}
         />
       )}
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showErrorModal}
+        message={errorMessage}
+        onClose={handleCloseErrorModal}
+      />
     </Layout>
   );
 }

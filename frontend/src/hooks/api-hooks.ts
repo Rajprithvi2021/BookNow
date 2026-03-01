@@ -90,7 +90,21 @@ export function useBookAppointment() {
         );
 
         if (response.error) {
-          setError(response.error.message);
+          // Handle different error response formats from backend
+          let errorMessage = 'An error occurred while booking.';
+          
+          if (typeof response.error === 'string') {
+            errorMessage = response.error;
+          } else if (response.error.detail) {
+            errorMessage = response.error.detail;
+          } else if (response.error.message) {
+            errorMessage = response.error.message;
+          } else if (response.error.error) {
+            errorMessage = response.error.error;
+          }
+          
+          console.log('Setting error message:', errorMessage);
+          setError(errorMessage);
           return null;
         }
 
