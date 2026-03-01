@@ -1,17 +1,20 @@
 version: '3.8'
 
+# Development Docker Compose Configuration
+# Use this for local development with hot reload and debugging
+
 services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: booknow-db
+    container_name: booknow-db-dev
     environment:
       POSTGRES_USER: ${DB_USER:-booknow}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-booknow_secure_pass_123}
       POSTGRES_DB: ${DB_NAME:-booknow}
       POSTGRES_INITDB_ARGS: "-c timezone=UTC"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -20,15 +23,15 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - booknow-network
+      - booknow-dev
     restart: unless-stopped
 
-  # Backend API
+  # Backend API (with hot reload)
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
-    container_name: booknow-backend
+    container_name: booknow-backend-dev
     depends_on:
       db:
         condition: service_healthy
@@ -39,9 +42,10 @@ services:
       FRONTEND_URL: http://localhost:3000
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
+      DEBUG: "True"
     volumes:
-      - ./backend/src:/app/src
-      - ./backend/scripts:/app/scripts
+      - ../backend/src:/app/src
+      - ../backend/scripts:/app/scripts
     ports:
       - "8000:8000"
     healthcheck:
@@ -51,28 +55,28 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - booknow-network
+      - booknow-dev
     restart: unless-stopped
     command: >
       sh -c "python -m scripts.seed_db && 
              uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
 
-  # Frontend Application
+  # Frontend (with hot reload)
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8000/api
-    container_name: booknow-frontend
+    container_name: booknow-frontend-dev
     depends_on:
       - backend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000/api
       NODE_ENV: development
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
+      - ../frontend/src:/app/src
+      - ../frontend/public:/app/public
       - /app/node_modules
       - /app/.next
     ports:
@@ -84,27 +88,28 @@ services:
       retries: 5
       start_period: 15s
     networks:
-      - booknow-network
+      - booknow-dev
     restart: unless-stopped
 
-  # Adminer (Database Management UI)
-  adminer:
-    image: adminer:latest
-    container_name: booknow-adminer
+  # PostgreSQL Admin UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: booknow-pgadmin-dev
     depends_on:
       - db
     environment:
-      ADMINER_DEFAULT_SERVER: db
+      PGADMIN_DEFAULT_EMAIL: admin@booknow.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "8081:8080"
+      - "5050:80"
     networks:
-      - booknow-network
+      - booknow-dev
     restart: unless-stopped
 
 networks:
-  booknow-network:
+  booknow-dev:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_dev:
     driver: local

@@ -1,0 +1,133 @@
+version: '3.8'
+
+# Production Docker Compose Configuration
+# Use this for production deployment with Nginx reverse proxy
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: booknow-db-prod
+    environment:
+      POSTGRES_USER: ${DB_USER:-booknow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?error}
+      POSTGRES_DB: ${DB_NAME:-booknow}
+      POSTGRES_INITDB_ARGS: "-c timezone=UTC -c shared_buffers=256MB -c effective_cache_size=1GB"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./database/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-booknow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - booknow-prod
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      cache_from:
+        - booknow-backend:latest
+    container_name: booknow-backend-prod
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-booknow}:${DB_PASSWORD:?error}@db:5432/${DB_NAME:-booknow}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      FRONTEND_URL: ${FRONTEND_URL:-https://booknow.example.com}
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - booknow-prod
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL:-https://api.booknow.example.com}
+      cache_from:
+        - booknow-frontend:latest
+    container_name: booknow-frontend-prod
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.booknow.example.com}
+      NODE_ENV: production
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - booknow-prod
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: booknow-nginx-prod
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - booknow-prod
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  booknow-prod:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+    driver: local
