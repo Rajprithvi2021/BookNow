@@ -2,7 +2,7 @@
  * Booking form component
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface BookingFormProps {
   selectedSlotId?: string;
@@ -15,6 +15,7 @@ interface BookingFormProps {
   }) => Promise<void>;
   loading?: boolean;
   error?: string;
+  successMessage?: string;
 }
 
 export default function BookingForm({
@@ -24,12 +25,24 @@ export default function BookingForm({
   onSubmit,
   loading = false,
   error,
+  successMessage,
 }: BookingFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     notes: '',
   });
+
+  // Reset form when booking is successful
+  useEffect(() => {
+    if (successMessage) {
+      setFormData({
+        name: '',
+        email: '',
+        notes: '',
+      });
+    }
+  }, [successMessage]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

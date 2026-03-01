@@ -44,7 +44,7 @@ export default function Home() {
 
     if (appointment) {
       setSuccessMessage(
-        `✅ Appointment confirmed! Confirmation sent to ${data.email}`
+        `✅ Appointment Confirmed!\n${selectedSlot.date} at ${selectedSlot.time}\nConfirmation sent to ${data.email}`
       );
       setSelectedSlot(null);
       // Refresh slots
@@ -98,8 +98,9 @@ export default function Home() {
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-900">{successMessage}</p>
+          <div className="mb-8 p-6 bg-green-50 border-2 border-green-300 rounded-lg shadow-md">
+            <p className="text-green-900 font-semibold whitespace-pre-line text-lg">{successMessage}</p>
+            <p className="text-green-700 text-sm mt-2">Your booking is now pending confirmation. Please check your email.</p>
           </div>
         )}
 
@@ -131,6 +132,7 @@ export default function Home() {
               onSubmit={handleBooking}
               loading={bookingLoading}
               error={bookingError}
+              successMessage={successMessage}
             />
           </div>
         </div>
