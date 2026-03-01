@@ -120,7 +120,6 @@ class Appointment(Base):
         UniqueConstraint(
             'availability_slot_id',
             name='unique_active_appointment_per_slot',
-            postgresql_where="status != 'CANCELLED'",
         ),
         Index('idx_appointment_email_status', 'customer_email', 'status'),
     )

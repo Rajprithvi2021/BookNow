@@ -12,16 +12,46 @@ import pytest
 from fastapi.testclient import TestClient
 from uuid import uuid4
 from datetime import date, time
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from src.main import create_app
 from src.core.config import Settings
+from src.db.models import Base
+from src.db.connection import get_db_session
 
 
 @pytest.fixture
-def app():
-    """Create test app instance."""
-    settings = Settings()
-    return create_app(settings)
+def test_db():
+    """Create in-memory SQLite database for tests."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False}
+    )
+    Base.metadata.create_all(bind=engine)
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    db = TestingSessionLocal()
+    yield db
+    db.close()
+
+
+@pytest.fixture
+def app(test_db):
+    """Create test app instance with test database."""
+    settings = Settings(database_url="sqlite:///:memory:")
+    app = create_app(settings)
+    
+    # Override the database dependency to use test database
+    def override_get_db():
+        yield test_db
+    
+    app.dependency_overrides[get_db_session] = override_get_db
+    
+    yield app
+    
+    # Clear overrides after test
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -31,16 +61,27 @@ def client(app):
 
 
 @pytest.fixture
-def setup_slots(client):
+def setup_slots(test_db):
     """Seed some availability slots for testing."""
-    from datetime import timedelta
-    from uuid import uuid4
+    from datetime import timedelta, time
+    from src.db.models import AvailabilitySlot
     
     start_date = date(2024, 12, 15)
-    slots = []
     
-    # This would normally be done via admin endpoint or management command
-    # For now, we'll just mark what SHOULD exist
+    # Create availability slots for 7 days with multiple time slots
+    for day_offset in range(7):
+        slot_date = start_date + timedelta(days=day_offset)
+        
+        for hour in [9, 10, 11, 14, 15, 16]:
+            slot = AvailabilitySlot(
+                slot_date=slot_date,
+                slot_time=time(hour=hour, minute=0),
+                duration_minutes=30,
+                is_available=True
+            )
+            test_db.add(slot)
+    
+    test_db.commit()
     return {"start_date": start_date, "days": 7}
 
 
