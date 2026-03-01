@@ -16,16 +16,16 @@ export default function Home() {
   } | null>(null);
 
   const [successMessage, setSuccessMessage] = useState('');
-  const [startDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const { slots, loading: slotsLoading, error: slotsError, fetchSlots } = useAvailableSlots();
   const { loading: bookingLoading, error: bookingError, book } = useBookAppointment();
   const { isHealthy, loading: healthLoading } = useApiHealth();
 
-  // Fetch slots on component mount
+  // Fetch slots for current month
   useEffect(() => {
-    fetchSlots(startDate, 7);
-  }, []);
+    fetchSlots(currentMonth, 30);
+  }, [currentMonth]);
 
   const handleSelectSlot = (slotId: string, date: string, time: string) => {
     setSelectedSlot({ id: slotId, date, time });
@@ -48,7 +48,7 @@ export default function Home() {
       );
       setSelectedSlot(null);
       // Refresh slots
-      fetchSlots(startDate, 7);
+      fetchSlots(currentMonth, 30);
       // Reset form
       setTimeout(() => {
         setSuccessMessage('');
@@ -56,6 +56,19 @@ export default function Home() {
     }
   };
 
+  const goToPreviousMonth = () => {
+    const prev = new Date(currentMonth);
+    prev.setMonth(prev.getMonth() - 1);
+    setCurrentMonth(prev);
+  };
+
+  const goToNextMonth = () => {
+    const next = new Date(currentMonth);
+    next.setMonth(next.getMonth() + 1);
+    setCurrentMonth(next);
+  };
+
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   if (healthLoading) {
     return (
       <Layout>
@@ -104,6 +117,23 @@ export default function Home() {
           </div>
         )}
 
+        {/* Month Navigation */}
+        <div className="mb-8 flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <button
+            onClick={goToPreviousMonth}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            ← Previous Month
+          </button>
+          <h2 className="text-2xl font-bold text-gray-900">{monthName}</h2>
+          <button
+            onClick={goToNextMonth}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Next Month →
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Availability Calendar */}
           <div className="lg:col-span-2">
@@ -112,6 +142,11 @@ export default function Home() {
               {slotsError && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded mb-4">
                   <p className="text-red-900 text-sm">{slotsError}</p>
+                </div>
+              )}
+              {slotsLoading && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded mb-4">
+                  <p className="text-blue-900 text-sm">Loading available slots...</p>
                 </div>
               )}
               <AvailabilityCalendar
