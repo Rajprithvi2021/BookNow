@@ -2,7 +2,7 @@
  * Home page: Book an appointment
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { useAvailableSlots, useBookAppointment, useApiHealth } from '@/hooks/api-hooks';
 import AvailabilityCalendar from '@/components/AvailabilityCalendar';
@@ -17,6 +17,7 @@ export default function Home() {
 
   const [successMessage, setSuccessMessage] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const formRef = useRef<HTMLDivElement>(null);
 
   const { slots, loading: slotsLoading, error: slotsError, fetchSlots } = useAvailableSlots();
   const { loading: bookingLoading, error: bookingError, book } = useBookAppointment();
@@ -30,6 +31,11 @@ export default function Home() {
   const handleSelectSlot = (slotId: string, date: string, time: string) => {
     setSelectedSlot({ id: slotId, date, time });
     setSuccessMessage('');
+    
+    // Scroll to booking form with a small delay to ensure the DOM is updated
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleBooking = async (data: { name: string; email: string; notes: string }) => {
@@ -159,16 +165,25 @@ export default function Home() {
           </div>
 
           {/* Booking Form */}
-          <div>
-            <BookingForm
-              selectedSlotId={selectedSlot?.id}
-              selectedDate={selectedSlot?.date}
-              selectedTime={selectedSlot?.time}
-              onSubmit={handleBooking}
-              loading={bookingLoading}
-              error={bookingError}
-              successMessage={successMessage}
-            />
+          <div ref={formRef}>
+            <div className={`bg-white rounded-lg shadow-md p-6 sticky top-4 ${selectedSlot ? 'ring-2 ring-blue-500' : ''}`}>
+              {selectedSlot && (
+                <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+                  <p className="text-sm text-blue-900 font-semibold">
+                    ✓ Slot selected - Fill in your details below to complete booking
+                  </p>
+                </div>
+              )}
+              <BookingForm
+                selectedSlotId={selectedSlot?.id}
+                selectedDate={selectedSlot?.date}
+                selectedTime={selectedSlot?.time}
+                onSubmit={handleBooking}
+                loading={bookingLoading}
+                error={bookingError}
+                successMessage={successMessage}
+              />
+            </div>
           </div>
         </div>
 
