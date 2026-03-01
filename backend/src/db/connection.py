@@ -2,15 +2,18 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, StaticPool
 from src.core.config import settings
 from src.utils.logger import logger
 
 # Create engine with connection pooling
+# For SQLite in-memory, use StaticPool to maintain a single connection
+# and allow cross-thread access
 engine = create_engine(
     settings.database_url,
     echo=settings.debug,
-    poolclass=NullPool if "sqlite" in settings.database_url else None,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
+    poolclass=StaticPool if "sqlite:///:memory:" in settings.database_url else None,
     pool_pre_ping=True,  # Verify connections before using
 )
 
