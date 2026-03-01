@@ -33,9 +33,18 @@ export default function Home() {
   const { loading: bookingLoading, error: bookingError, book } = useBookAppointment();
   const { isHealthy, loading: healthLoading } = useApiHealth();
 
-  // Fetch slots for current month
+  // Helper function to get days in month
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  // Fetch slots for current month only
   useEffect(() => {
-    fetchSlots(currentMonth, 30);
+    const daysInMonth = getDaysInMonth(currentMonth);
+    console.log(`Fetching ${daysInMonth} days for ${currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
+    fetchSlots(currentMonth, daysInMonth);
   }, [currentMonth]);
 
   const handleSelectSlot = (slotId: string, date: string, time: string) => {
@@ -77,8 +86,9 @@ export default function Home() {
       });
       setShowConfirmationModal(true);
       setSelectedSlot(null);
-      // Refresh slots
-      fetchSlots(currentMonth, 30);
+      // Refresh slots for current month
+      const daysInMonth = getDaysInMonth(currentMonth);
+      fetchSlots(currentMonth, daysInMonth);
     } else if (bookingError) {
       // Show error modal with friendly message
       console.log('Showing error modal with message:', bookingError);
