@@ -49,8 +49,9 @@ async def init_db():
             logger.info("Seeding sample availability slots...")
             today = date.today()
             
-            # Create 20 sample slots across next 7 days
-            for day_offset in range(7):
+            # Create sample slots for 3 months (90 days)
+            # 4 slots per day = 360 total slots
+            for day_offset in range(90):
                 slot_date = today + timedelta(days=day_offset)
                 
                 # 4 slots per day at different times
@@ -72,7 +73,7 @@ async def init_db():
                     session.add(slot)
             
             session.commit()
-            logger.info("Successfully seeded 28 availability slots")
+            logger.info("Successfully seeded 360 availability slots (90 days × 4 slots/day)")
         
         session.close()
         
