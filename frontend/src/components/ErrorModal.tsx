@@ -1,8 +1,3 @@
-/**
- * Error Modal Component
- * Displays user-friendly error messages for booking failures
- */
-
 import React from 'react';
 
 interface ErrorModalProps {
