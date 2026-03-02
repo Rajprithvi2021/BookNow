@@ -115,7 +115,7 @@ async def book_appointment(
         # Book appointment (with locking)
         appointment = AppointmentService.book_appointment(
             session=session,
-            slot_id=request.slot_id,
+            slot_id=request.availability_slot_id,
             customer_name=request.customer_name,
             customer_email=request.customer_email,
             idempotency_key=idempotency_key,

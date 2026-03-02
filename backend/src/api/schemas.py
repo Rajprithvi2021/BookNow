@@ -35,9 +35,10 @@ class AvailabilitySlotsResponse(BaseModel):
 
 class BookAppointmentRequest(BaseModel):
     """Request to book appointment."""
-    slot_id: UUID = Field(..., description="UUID of availability slot")
+    availability_slot_id: UUID = Field(..., description="UUID of availability slot")
     customer_name: str = Field(..., min_length=1, max_length=255)
     customer_email: EmailStr
+    notes: Optional[str] = Field(None, max_length=1000)
     notes: Optional[str] = Field(None, max_length=1000)
 
 
