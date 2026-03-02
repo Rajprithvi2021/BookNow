@@ -43,7 +43,8 @@ export function useAvailableSlots() {
       const response = await getAvailableSlots(startDate, days);
 
       if (response.error) {
-        setError(response.error.message);
+        const errorMsg = response.error.message || response.error.error || 'Failed to fetch slots';
+        setError(errorMsg);
         return;
       }
 
@@ -82,21 +83,8 @@ export function useBookAppointment() {
         );
 
         if (response.error) {
-
-          let errorMessage = 'An error occurred while booking.';
-          
-          if (typeof response.error === 'string') {
-            errorMessage = response.error;
-          } else if (response.error.detail) {
-            errorMessage = response.error.detail;
-          } else if (response.error.message) {
-            errorMessage = response.error.message;
-          } else if (response.error.error) {
-            errorMessage = response.error.error;
-          }
-          
-          console.log('Setting error message:', errorMessage);
-          setError(errorMessage);
+          const errorMsg = response.error.message || response.error.error || 'An error occurred while booking';
+          setError(errorMsg);
           return null;
         }
 
@@ -129,7 +117,8 @@ export function useAppointments() {
         const response = await listAppointments(email, includeCancelled);
 
         if (response.error) {
-          setError(response.error.message);
+          const errorMsg = response.error.message || response.error.error || 'Failed to fetch appointments';
+          setError(errorMsg);
           return;
         }
 
@@ -159,7 +148,8 @@ export function useCancelAppointment() {
       const response = await cancelAppointment(appointmentId, reason);
 
       if (response.error) {
-        setError(response.error.message);
+        const errorMsg = response.error.message || response.error.error || 'Failed to cancel appointment';
+        setError(errorMsg);
         return null;
       }
 
