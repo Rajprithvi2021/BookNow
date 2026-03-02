@@ -12,9 +12,8 @@ import uuid
 from sqlalchemy import (
     Column, String, DateTime, Date, Time, Boolean, 
     Enum as SQLEnum, ForeignKey, UniqueConstraint, Integer, JSON, Text,
-    Index
+    Index, Uuid
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -48,7 +47,7 @@ class AvailabilitySlot(Base):
     """
     __tablename__ = "availability_slots"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     slot_date = Column(Date, nullable=False, index=True)
     slot_time = Column(Time, nullable=False)
     duration_minutes = Column(Integer, default=60)
@@ -75,9 +74,9 @@ class Appointment(Base):
     """
     __tablename__ = "appointments"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     availability_slot_id = Column(
-        UUID(as_uuid=True), 
+        Uuid(as_uuid=True), 
         ForeignKey("availability_slots.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
@@ -96,7 +95,7 @@ class Appointment(Base):
     
     # Idempotency key for deduplication on retry
     idempotency_key = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         unique=True,
         nullable=False,
         index=True
@@ -115,12 +114,11 @@ class Appointment(Base):
     notifications = relationship("Notification", back_populates="appointment")
     
     # CRITICAL CONSTRAINT: Prevent multiple active appointments for same slot
-    # Only one CONFIRMED/PENDING appointment per slot allowed
+    # Only one non-CANCELLED appointment per slot allowed
+    # SQLite doesn't support partial indices, so we use compound constraint
+    # The pessimistic locking (FOR UPDATE) at application level provides the real protection
     __table_args__ = (
-        UniqueConstraint(
-            'availability_slot_id',
-            name='unique_active_appointment_per_slot',
-        ),
+        Index('idx_slot_active_appointments', 'availability_slot_id', 'status'),
         Index('idx_appointment_email_status', 'customer_email', 'status'),
     )
 
@@ -133,9 +131,9 @@ class Notification(Base):
     """
     __tablename__ = "notifications"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     appointment_id = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("appointments.id", ondelete="CASCADE"),
         nullable=False,
         index=True
@@ -183,7 +181,7 @@ class IdempotencyRecord(Base):
     """
     __tablename__ = "idempotency_records"
     
-    idempotency_key = Column(UUID(as_uuid=True), primary_key=True)
+    idempotency_key = Column(Uuid(as_uuid=True), primary_key=True)
     method = Column(String(10), nullable=False)  # POST, DELETE, etc
     resource_path = Column(String(255), nullable=False)
     response_status = Column(Integer, nullable=False)

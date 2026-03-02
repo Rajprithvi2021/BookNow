@@ -10,6 +10,7 @@ from src.core.config import Settings
 from src.api.routes import router
 from src.utils.exceptions import BookNowException
 from src.utils.logger import logger
+from src.workers.notification_worker import NotificationWorker
 
 
 def create_app(settings: Settings = None) -> FastAPI:
@@ -63,10 +64,20 @@ def create_app(settings: Settings = None) -> FastAPI:
     
     @app.on_event("startup")
     async def startup_event():
-        """Initialize database on startup."""
+        """Initialize database and start background workers on startup."""
         from src.db.connection import init_db
         await init_db()
         logger.info("Database initialized")
+        
+        # Start notification worker
+        await NotificationWorker.start(interval_seconds=5)
+        logger.info("Background workers started")
+    
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Stop background workers on shutdown."""
+        await NotificationWorker.stop()
+        logger.info("Background workers stopped")
     
     return app
 

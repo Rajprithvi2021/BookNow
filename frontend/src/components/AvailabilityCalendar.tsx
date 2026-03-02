@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Slot {
   id: string;
@@ -71,47 +73,53 @@ export default function AvailabilityCalendar({
   const unAvailableSlots = allSlots - totalSlots;
 
   return (
-    <div className="space-y-6">
-      {/* Legend - Only show available count */}
-      <div className="grid grid-cols-1 gap-4 pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <div className="px-4 py-2 bg-white border border-green-300 rounded text-xs font-medium text-green-900">
-            ✓ Available
-          </div>
-          <span className="text-sm text-gray-600">{totalSlots} slots ready to book</span>
-        </div>
-      </div>
-
-      {/* Calendar */}
-      {Object.entries(groupedByDate)
-        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-        .map(([date, daySlots]) => (
-          <div key={date}>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              {new Date(date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {daySlots.map((slot) => (
-                <button
-                  key={slot.id}
-                  onClick={() => onSelectSlot(slot.id, slot.slot_date, slot.slot_time)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
-                    selectedSlotId === slot.id
-                      ? 'bg-green-600 text-white ring-2 ring-green-400 shadow-lg'
-                      : 'bg-white border border-green-300 text-gray-900 hover:bg-green-50 hover:border-green-500 hover:shadow'
-                  }`}
-                >
-                  <span className="text-xs block mb-1">✓ Available</span>
-                  {slot.slot_time}
-                </button>
-              ))}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Available Time Slots</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Legend - Only show available count */}
+        <div className="grid grid-cols-1 gap-4 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <div className="px-4 py-2 bg-white border border-green-300 rounded text-xs font-medium text-green-900">
+              ✓ Available
             </div>
+            <span className="text-sm text-gray-600">{totalSlots} slots ready to book</span>
           </div>
-        ))}
-    </div>
+        </div>
+
+        {/* Calendar */}
+        {Object.entries(groupedByDate)
+          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+          .map(([date, daySlots]) => (
+            <div key={date}>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                {new Date(date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {daySlots.map((slot) => (
+                  <Button
+                    key={slot.id}
+                    onClick={() => onSelectSlot(slot.id, slot.slot_date, slot.slot_time)}
+                    variant={selectedSlotId === slot.id ? 'default' : 'outline'}
+                    className={`flex flex-col h-auto py-3 ${
+                      selectedSlotId === slot.id
+                        ? 'bg-green-600 text-white'
+                        : 'border-green-300 text-gray-900'
+                    }`}
+                  >
+                    <span className="text-xs mb-1">✓</span>
+                    {slot.slot_time}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ))}
+      </CardContent>
+    </Card>
   );
 }

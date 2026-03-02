@@ -89,6 +89,18 @@ class AppointmentService:
                 f"Slot {slot_id} on {slot.slot_date} {slot.slot_time} already booked"
             )
         
+        # CRITICAL: Also check if there's already a non-cancelled appointment for this slot
+        # This handles race conditions and ensures slot uniqueness
+        existing_active_appointment = session.query(Appointment) \
+            .filter_by(availability_slot_id=slot_id) \
+            .filter(Appointment.status != AppointmentStatus.CANCELLED) \
+            .one_or_none()
+        
+        if existing_active_appointment:
+            raise DoubleBookingError(
+                f"Slot {slot_id} on {slot.slot_date} {slot.slot_time} already booked"
+            )
+        
         try:
             # Create appointment
             appointment = Appointment(
@@ -157,7 +169,7 @@ class AppointmentService:
         
         Idempotency guaranteed by state machine:
         - If already CANCELLED: return it (no error)
-        - If CONFIRMED: transition to CANCELLED
+        - If CONFIRMED: transition to CANCELLED and restore slot availability
         - Safe to call multiple times
         
         Args:
@@ -192,6 +204,12 @@ class AppointmentService:
         appointment.status = AppointmentStatus.CANCELLED
         appointment.cancelled_at = datetime.utcnow()
         
+        # CRITICAL: Restore slot availability when appointment is cancelled
+        slot = session.query(AvailabilitySlot) \
+            .filter_by(id=appointment.availability_slot_id) \
+            .one()
+        slot.is_available = True
+        
         # Queue cancellation notification
         notification = Notification(
             appointment_id=appointment.id,
@@ -210,7 +228,7 @@ class AppointmentService:
         
         session.commit()
         
-        logger.info(f"Appointment {appointment_id} cancelled")
+        logger.info(f"Appointment {appointment_id} cancelled, slot restored to available")
         
         return appointment
     
